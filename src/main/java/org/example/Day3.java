@@ -1,38 +1,32 @@
 package org.example;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
 import java.util.Scanner;
 import java.util.stream.Collectors;
+
+// Il y a un comme un air de déjà vu sur ce code...
 public class Day3 {
 
-    private List<List<String>> groups = new ArrayList<>();
-    private ArrayList<Character> itemByGroup = new ArrayList<>();
-    private ArrayList<Character> itemsIdentiques = new ArrayList<>();
+    // Ne créons pas d'état si pas nécessaire (attributs)
 
     public static List<String> getInputByLine(String pathname) {
-        List<String> backpacks = new ArrayList<>();
-        try {
-            File input = new File(pathname);
-            Scanner scanner = new Scanner(input);
-
-            while (scanner.hasNextLine()) {
-                String backpack = scanner.nextLine();
-                backpacks.add(backpack);
-            }
-            scanner.close();
-
-        } catch (FileNotFoundException e) {
-
-            System.out.println("Fichier non trouvé.");
-            e.printStackTrace();
+        try(InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(pathname);
+            InputStreamReader isr = new InputStreamReader(is);
+            BufferedReader br = new BufferedReader(isr)) {
+            return br.lines().collect(Collectors.toList());
+        } catch(Exception e) {
+            throw new RuntimeException(e);
         }
-        return backpacks;
     }
 
     public Integer resolvePuzzlePart1(List<String> backpacks) {
+        ArrayList<Character> itemsIdentiques = new ArrayList<>();
         for (String s : backpacks) {
             int length = s.length();
             String compart1 = s.substring(0, length / 2);
@@ -43,7 +37,8 @@ public class Day3 {
     }
 
     public Integer resolvePuzzlePart2(List<String> backpacks) {
-        groups = divideByGroups(backpacks);
+        List<List<String>> groups = divideByGroups(backpacks);
+        List<Character> itemByGroup = new ArrayList<>();
         for (List<String> groupe : groups) {
             itemByGroup.add(compareGroup(groupe));
         }
@@ -52,7 +47,6 @@ public class Day3 {
     }
 
     private Character compareGroup(List<String> groupe) {
-        Character result = null;
         List<Character> elf1 = groupe.get(0).chars().mapToObj(c -> (char) c).collect(Collectors.toList());
         List<Character> elf2 = groupe.get(1).chars().mapToObj(c -> (char) c).collect(Collectors.toList());
         List<Character> elf3 = groupe.get(2).chars().mapToObj(c -> (char) c).collect(Collectors.toList());
@@ -60,12 +54,7 @@ public class Day3 {
         elf1.retainAll(elf2);
         elf1.retainAll(elf3);
 
-        for (Character c : elf1) {
-            if (c != null) {
-                result = c;
-            }
-        }
-        return result;
+        return elf1.get(0);
     }
 
     private List<List<String>> divideByGroups(List<String> backpacks) {
@@ -79,30 +68,22 @@ public class Day3 {
     }
 
     private Integer caclulate(List<Character> itemsIdentiques) {
-        List<Integer> intList = itemsIdentiques.stream().map(c -> {
+        return itemsIdentiques.stream().mapToInt(c -> {
             if (c >= 'a' && c <= 'z') {
                 return c - 'a' + 1;
             } else if (c >= 'A' && c <= 'Z') {
                 return c - 'A' + 27;
             } else {
-                return null;
+                return 0;
             }
-        }).toList();
-
-        return intList.stream().reduce(0, Integer::sum);
+        }).sum();
     }
 
     private Character compareCompartiments(String compartiment1, String compartiment2) {
-        Character result = null;
         List<Character> charComp1 = compartiment1.chars().mapToObj(c -> (char) c).collect(Collectors.toList());
         List<Character> charComp2 = compartiment2.chars().mapToObj(c -> (char) c).collect(Collectors.toList());
         charComp1.retainAll(charComp2);
-        for (Character c : charComp1) {
-            if (c != null) {
-                result = c;
-            }
-        }
-        return result;
+        return charComp1.get(0);
     }
 
 
